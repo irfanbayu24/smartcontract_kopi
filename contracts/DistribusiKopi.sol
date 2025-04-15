@@ -73,7 +73,6 @@ contract DistribusiKopi {
     }
 
     // View Functions
-
     function getDistribusi(uint256 _id) public view returns (DistribusiKopiData memory) {
         return distribusi[_id];
     }

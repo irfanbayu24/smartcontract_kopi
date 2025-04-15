@@ -21,6 +21,8 @@ const ProsesDistribusi = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [customAddress, setCustomAddress] = useState(false);
+  const [warning, setWarning] = useState('');
+  const [forceShowForm, setForceShowForm] = useState(false);
   const [customReceiverAddress, setCustomReceiverAddress] = useState(false);
 
   // Deteksi lingkungan browser
@@ -167,12 +169,11 @@ const ProsesDistribusi = () => {
         
         // Jika tidak dalam mode view only, periksa alamat pengepul
         if (!viewOnly && data.pengepul.toLowerCase() !== walletAddress.toLowerCase()) {
-          setError('Anda bukan pengepul yang ditugaskan untuk distribusi ini');
-        }
-        
-        // Pastikan status distribusi adalah "Dikirim ke Pengepul" (status 1)
-        if (Number(data.status) !== 1) {
-          setError(`Distribusi ini tidak dalam status yang tepat untuk diproses (status saat ini: ${Number(data.status)})`);
+          setWarning('Anda bukan pengepul yang ditugaskan untuk distribusi ini');
+        } else if (Number(data.status) !== 1) {
+          setWarning(`Distribusi ini tidak dalam status yang tepat untuk diproses (status saat ini: ${Number(data.status)})`);
+        } else {
+          setWarning('');
         }
         
         // Format data untuk ditampilkan
@@ -209,152 +210,41 @@ const ProsesDistribusi = () => {
     }
   };
 
-  // Fungsi untuk mengambil daftar pengirim terdaftar
+  // Fungsi untuk mengambil daftar pengirim terdaftar yang sudah terdaftar pada smart contract
   const fetchRegisteredShippers = async () => {
     try {
       const contract = distribusi();
-      
-      // Since there's no event to track role registration, we'll check a list of predefined addresses
-      // Ideally in a production system, this would be fetched from a backend service or indexed events
-      const testAddresses = [
-        '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC',
-        '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
-        '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65',
-        '0x71bE63f3384f5fb98995898A86B02Fb2426c5788',
-        '0xFABB0ac9d68B0B445fB7357272Ff202C5651694a',
-        '0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec',
-        '0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097',
-        '0xcd3B766CCDd6AE721141F452C550Ca635964ce71',
-        '0x2546BcD3c84621e976D8185a91A922aE77ECEc30',
-        '0xbDA5747bFD65F08deb54cb465eB87D40e51B197E'
-      ];
-      
       const pengirimAddresses = [];
       
-      // Check each address to see if it has role 3 (Pengirim)
-      for (const address of testAddresses) {
+      console.log('Mencari pengirim terdaftar di smart contract...');
+      
+      // Dapatkan semua alamat dari blockchain
+      // Kita akan menggunakan accounts yang terhubung ke jaringan
+      const accounts = await web3.eth.getAccounts();
+      
+      // Periksa peran untuk setiap alamat yang tersedia
+      for (const address of accounts) {
         try {
           const role = await contract.methods.roles(address).call();
+          // Hanya tambahkan alamat dengan peran 3 (Pengirim)
           if (Number(role) === 3) {
             let name = `Pengirim (${formatAddress(address)})`;
-            
-            // Try to get user name if contract has it (optional)
-            try {
-              // Attempt to get a username - you can customize this based on your contract
-              const userName = await contract.methods.userNames(address).call().catch(() => '');
-              if (userName && userName !== '') {
-                name = `${userName} (${formatAddress(address)})`;
-              }
-            } catch (nameErr) {
-              console.log('No userNames method found or error:', nameErr);
-            }
-            
+            console.log(`Menemukan pengirim terdaftar: ${name}`);
             pengirimAddresses.push({ address, name });
           }
         } catch (err) {
-          console.log(`Error checking role for ${address}:`, err);
+          console.log(`Error memeriksa role untuk ${address}:`, err);
         }
       }
       
-      console.log('Found registered pengirim addresses:', pengirimAddresses);
+      console.log(`Ditemukan ${pengirimAddresses.length} pengirim terdaftar di smart contract`);
+      setRegisteredShippers(pengirimAddresses);
       
-      // If no pengirim found, use default examples for testing
-      if (pengirimAddresses.length === 0) {
-        setRegisteredShippers([
-          { address: '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC', name: 'Expedisi Kopi Prima' },
-          { address: '0x90F79bf6EB2c4f870365E785982E1f101E93b906', name: 'JNE Cargo' },
-          { address: '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65', name: 'Ninja Express' }
-        ]);
-      } else {
-        setRegisteredShippers(pengirimAddresses);
-      }
     } catch (err) {
-      console.error('Error fetching shippers:', err);
-      // Fallback to example data
-      setRegisteredShippers([
-        { address: '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC', name: 'Expedisi Kopi Prima' },
-        { address: '0x90F79bf6EB2c4f870365E785982E1f101E93b906', name: 'JNE Cargo' },
-        { address: '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65', name: 'Ninja Express' }
-      ]);
+      console.error('Error mendapatkan data pengirim:', err);
+      setRegisteredShippers([]);
     }
   };
-
-  // Fungsi untuk mengambil daftar penerima terdaftar
-  const fetchRegisteredReceivers = async () => {
-    try {
-      const contract = distribusi();
-      
-      // Since there's no event to track role registration, we'll check a list of predefined addresses
-      // Ideally in a production system, this would be fetched from a backend service or indexed events
-      const testAddresses = [
-        '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
-        '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
-        '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC',
-        '0x71bE63f3384f5fb98995898A86B02Fb2426c5788',
-        '0xFABB0ac9d68B0B445fB7357272Ff202C5651694a',
-        '0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec',
-        '0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097',
-        '0xcd3B766CCDd6AE721141F452C550Ca635964ce71',
-        '0x2546BcD3c84621e976D8185a91A922aE77ECEc30',
-        '0xbDA5747bFD65F08deb54cb465eB87D40e51B197E'
-      ];
-      
-      const penerimaAddresses = [];
-      
-      // Check each address to see if it has role 4 (Penerima)
-      for (const address of testAddresses) {
-        try {
-          const role = await contract.methods.roles(address).call();
-          if (Number(role) === 4) {
-            let name = `Penerima (${formatAddress(address)})`;
-            
-            // Try to get user name if contract has it (optional)
-            try {
-              // Attempt to get a username - you can customize this based on your contract
-              const userName = await contract.methods.userNames(address).call().catch(() => '');
-              if (userName && userName !== '') {
-                name = `${userName} (${formatAddress(address)})`;
-              }
-            } catch (nameErr) {
-              console.log('No userNames method found or error:', nameErr);
-            }
-            
-            penerimaAddresses.push({ address, name });
-          }
-        } catch (err) {
-          console.log(`Error checking role for ${address}:`, err);
-        }
-      }
-      
-      console.log('Found registered penerima addresses:', penerimaAddresses);
-      
-      // If no penerima found, use default examples for testing
-      if (penerimaAddresses.length === 0) {
-        setRegisteredReceivers([
-          { address: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266', name: 'Kopi Roastery Jakarta' },
-          { address: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8', name: 'Café Bandung' },
-          { address: '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC', name: 'Coffee Shop Surabaya' }
-        ]);
-      } else {
-        setRegisteredReceivers(penerimaAddresses);
-      }
-    } catch (err) {
-      console.error('Error fetching receivers:', err);
-      // Fallback to example data
-      setRegisteredReceivers([
-        { address: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266', name: 'Kopi Roastery Jakarta' },
-        { address: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8', name: 'Café Bandung' },
-        { address: '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC', name: 'Coffee Shop Surabaya' }
-      ]);
-    }
-  };
-
-  // Panggil fungsi untuk mendapatkan daftar penerima
-  useEffect(() => {
-    if (isConnected) {
-      fetchRegisteredReceivers();
-    }
-  }, [isConnected]);
 
   // Fungsi untuk memproses distribusi
   const handleProsesDistribusi = async (e) => {
@@ -362,11 +252,6 @@ const ProsesDistribusi = () => {
     
     if (!pengirimAddress || !pengirimAddress.trim()) {
       setError('Silakan pilih atau masukkan alamat pengirim');
-      return;
-    }
-
-    if (!penerimaAddress || !penerimaAddress.trim()) {
-      setError('Silakan pilih atau masukkan alamat penerima');
       return;
     }
     
@@ -381,10 +266,37 @@ const ProsesDistribusi = () => {
         setSubmitLoading(false);
         return;
       }
-
-      // Validasi alamat ethereum penerima
-      if (!web3.utils.isAddress(penerimaAddress)) {
-        setError('Alamat penerima tidak valid');
+      
+      // Validate that the distributor is authorized
+      if (distributionData.pengepul.toLowerCase() !== walletAddress.toLowerCase()) {
+        setError('Anda bukan pengepul yang ditugaskan untuk distribusi ini');
+        setSubmitLoading(false);
+        return;
+      }
+      
+      // Ensure distribution status is correct
+      if (distributionData.status !== 1) {
+        setError(`Distribusi ini tidak dalam status yang tepat untuk diproses (status saat ini: ${distributionData.status})`);
+        setSubmitLoading(false);
+        return;
+      }
+      
+      // Periksa apakah pengirim memiliki peran yang sesuai
+      const contract = distribusi();
+      
+      try {
+        // Validasi peran pengirim (harus role 3)
+        const pengirimRole = await contract.methods.roles(pengirimAddress).call();
+        if (Number(pengirimRole) !== 3) {
+          setError('Alamat pengirim tidak terdaftar sebagai Pengirim (role 3) di smart contract');
+          setSubmitLoading(false);
+          return;
+        }
+        
+        console.log('Role pengirim divalidasi:', pengirimRole);
+      } catch (roleError) {
+        console.error('Error checking roles:', roleError);
+        setError('Gagal memeriksa peran alamat di smart contract');
         setSubmitLoading(false);
         return;
       }
@@ -397,34 +309,15 @@ const ProsesDistribusi = () => {
         return;
       }
       
-      console.log('Processing distribution ID:', numericId, 'Pengirim:', pengirimAddress, 'Penerima:', penerimaAddress);
+      console.log('Processing distribution ID:', numericId, 'Pengirim:', pengirimAddress);
       
       // Referensi ke kontrak
-      const contract = distribusi();
       const accounts = await web3.eth.getAccounts();
       
       try {
-        // 1. Set Penerima terlebih dahulu
-        console.log('Setting penerima address to:', penerimaAddress);
-        let gasEstimatePenerima = await contract.methods.setDistribusiPenerima(
-          numericId,
-          penerimaAddress
-        ).estimateGas({ from: accounts[0] });
-        
-        console.log('Gas estimate for setDistribusiPenerima:', gasEstimatePenerima);
-        
-        const receiptPenerima = await contract.methods.setDistribusiPenerima(
-          numericId,
-          penerimaAddress
-        ).send({ 
-          from: accounts[0],
-          gas: Math.floor(Number(gasEstimatePenerima) * 1.2)
-        });
-        
-        console.log('Penerima set transaction receipt:', receiptPenerima);
-        
-        // 2. Kemudian validasi pengepul dengan pengirim
+        // Validasi pengepul dengan pengirim
         console.log('Validating with pengirim address:', pengirimAddress);
+        
         let gasEstimatePengirim = await contract.methods.validasiPengepul(
           numericId,
           pengirimAddress
@@ -432,6 +325,7 @@ const ProsesDistribusi = () => {
         
         console.log('Gas estimate for validasiPengepul:', gasEstimatePengirim);
         
+        // Eksekusi validasiPengepul
         const receiptPengirim = await contract.methods.validasiPengepul(
           numericId,
           pengirimAddress
@@ -442,7 +336,7 @@ const ProsesDistribusi = () => {
         
         console.log('validasiPengepul transaction receipt:', receiptPengirim);
         
-        setSuccess('Distribusi berhasil diproses! Pengirim dan penerima telah ditentukan.');
+        setSuccess('Distribusi berhasil diproses! Status distribusi telah diperbarui dan pengirim telah ditentukan.');
         
         // Redirect ke dashboard pengepul setelah berhasil
         setTimeout(() => {
@@ -454,8 +348,6 @@ const ProsesDistribusi = () => {
         // Check specific error messages
         if (estimateError.message.includes('Bukan pengepul yang sah')) {
           setError('Anda bukan pengepul yang ditugaskan untuk distribusi ini');
-        } else if (estimateError.message.includes('Alamat bukan penerima terdaftar')) {
-          setError('Alamat penerima tidak terdaftar dengan role Penerima (4)');
         } else {
           setError('Gagal memproses distribusi: ' + estimateError.message);
         }
@@ -478,8 +370,8 @@ const ProsesDistribusi = () => {
   return (
     <div className="proses-page">
       <Head>
-        <title>Proses Distribusi | Pengepul Dashboard</title>
-        <meta name="description" content="Proses distribusi kopi dan pilih pengirim" />
+        <title>Pilih Pengirim | Pengepul Dashboard</title>
+        <meta name="description" content="Proses distribusi kopi dan pilih pengirim untuk pengiriman" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -513,6 +405,20 @@ const ProsesDistribusi = () => {
 
             {error && <div className="error-message">{error}</div>}
             {success && <div className="success-message">{success}</div>}
+            {warning && <div className="warning-message">{warning}</div>}
+
+            {error && <div className="error-message">
+              {error}
+              {distributionData && distributionData.pengepul.toLowerCase() === walletAddress.toLowerCase() && distributionData.status === 1 && (
+                <div className="mt-3">
+                  <button className="btn-override" onClick={() => { setError(''); setForceShowForm(true); }}>
+                    Tampilkan Form Proses
+                  </button>
+                </div>
+              )}
+            </div>}
+            {success && <div className="success-message">{success}</div>}
+            {warning && <div className="warning-message">{warning}</div>}
 
             {loading ? (
               <div className="loading-container">
@@ -607,11 +513,15 @@ const ProsesDistribusi = () => {
                               required
                             >
                               <option value="">-- Pilih Pengirim --</option>
-                              {registeredShippers.map((shipper, index) => (
-                                <option key={index} value={shipper.address}>
-                                  {shipper.name}
-                                </option>
-                              ))}
+                              {registeredShippers.length > 0 ? 
+                                registeredShippers.map((shipper, index) => (
+                                  <option key={index} value={shipper.address}>
+                                    {shipper.name}
+                                  </option>
+                                ))
+                              : 
+                                <option value="" disabled>Tidak ada pengirim terdaftar</option>
+                              }
                             </select>
                             <small className="help-text">Pilih pengirim dari daftar pengirim terdaftar</small>
                           </div>
@@ -660,11 +570,15 @@ const ProsesDistribusi = () => {
                               required
                             >
                               <option value="">-- Pilih Penerima --</option>
-                              {registeredReceivers.map((receiver, index) => (
-                                <option key={index} value={receiver.address}>
-                                  {receiver.name}
-                                </option>
-                              ))}
+                              {registeredReceivers.length > 0 ? 
+                                registeredReceivers.map((receiver, index) => (
+                                  <option key={index} value={receiver.address}>
+                                    {receiver.name}
+                                  </option>
+                                ))
+                              : 
+                                <option value="" disabled>Tidak ada penerima terdaftar</option>
+                              }
                             </select>
                             <small className="help-text">Pilih penerima dari daftar penerima terdaftar</small>
                           </div>
@@ -682,10 +596,13 @@ const ProsesDistribusi = () => {
                             <small className="help-text">Masukkan alamat wallet penerima yang valid (format 0x...)</small>
                           </div>
                         )}
-
+                        
                         <div className="info-message">
-                          <b>Penting:</b> Alamat penerima yang dipilih harus sudah terdaftar sebagai Penerima (role 4) di smart contract. 
-                          Jika tidak, transaksi akan gagal dengan pesan "Alamat bukan penerima terdaftar".
+                          <b>Penting:</b> Alamat pengirim harus terdaftar sebagai Pengirim (role 3) di smart contract.
+                          Jika tidak ada pengirim yang terdaftar, maka perlu didaftarkan terlebih dahulu melalui fungsi registerRole.
+                          <br/><br/>
+                          <b>Catatan:</b> Saat validasi, proses ini akan mengubah status menjadi "Dikirim ke Penerima". 
+                          Penerima akan dapat memvalidasi pengiriman ketika barang telah sampai.
                         </div>
                         
                         <div className="form-actions">
@@ -704,7 +621,7 @@ const ProsesDistribusi = () => {
                             {submitLoading ? (
                               <><div className="loader-small"></div> Memproses...</>
                             ) : (
-                              'Proses Distribusi'
+                              'Pilih Pengirim'
                             )}
                           </button>
                         </div>
@@ -1055,6 +972,15 @@ const ProsesDistribusi = () => {
           border-radius: 4px;
           margin-bottom: 20px;
           border-left: 3px solid #4caf50;
+        }
+
+        .warning-message {
+          background: rgba(255, 215, 0, 0.1);
+          color: #FFD700;
+          padding: 12px 16px;
+          border-radius: 4px;
+          margin-bottom: 20px;
+          border-left: 3px solid #FFD700;
         }
 
         .action-buttons {

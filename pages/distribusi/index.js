@@ -10,7 +10,11 @@ const DistributionList = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState('');
   const [distributions, setDistributions] = useState([]);
+  const [filteredDistributions, setFilteredDistributions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState(0);
+  const [dateFilter, setDateFilter] = useState('');
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
 
   // Sample data for demonstration
   const sampleDistributions = [
@@ -69,6 +73,8 @@ const DistributionList = () => {
             if (parseInt(role) === 0) {
               router.push('/register');
             }
+
+            setUserRole(parseInt(role));
           } else {
             // Not connected but allow viewing
             setIsConnected(false);
@@ -104,22 +110,25 @@ const DistributionList = () => {
             farmName: `Distribusi #${i}`, // Placeholder as the contract doesn't store farm name
             location: data.lokasi,
             harvestDate: data.tanggalPanen,
-            coffeeType: 'N/A', // Not stored in contract
-            processingMethod: 'N/A', // Not stored in contract
+            coffeeType: 'Belum Ditentukan', // We'll show "Belum Ditentukan" for coffee type
+            processingMethod: 'Belum Ditentukan', // We'll show "Belum Ditentukan" for processing method
             batchWeight: data.berat,
             price: '0', // Not stored in contract
             status: statusText,
+            statusCode: parseInt(data.status), // Store the numeric status code
             timestamp: new Date().toISOString() // Not stored in contract, using current time as placeholder
           });
         }
         
         setDistributions(distributionsData);
+        setFilteredDistributions(distributionsData);
         setLoading(false);
       } catch (error) {
         console.error('Error loading distributions:', error);
         // If there's an error, we'll show sample data as fallback
         setTimeout(() => {
           setDistributions(sampleDistributions);
+          setFilteredDistributions(sampleDistributions);
           setLoading(false);
         }, 1500);
       }
@@ -127,6 +136,49 @@ const DistributionList = () => {
     
     checkConnection();
   }, [router]);
+
+  // Apply filters when dateFilter changes
+  useEffect(() => {
+    applyFilters();
+  }, [dateFilter, distributions]);
+
+  const applyFilters = () => {
+    let results = [...distributions];
+    
+    // Filter by selected date if defined
+    if (dateFilter) {
+      const selectedDate = new Date(dateFilter);
+      // Set hours to beginning of day for comparison
+      selectedDate.setHours(0, 0, 0, 0);
+      
+      // Get end of the selected day
+      const endOfDay = new Date(dateFilter);
+      endOfDay.setHours(23, 59, 59, 999);
+      
+      results = results.filter(item => {
+        const distributionDate = new Date(item.timestamp);
+        // Reset time parts to ensure comparison works properly
+        distributionDate.setHours(0, 0, 0, 0);
+        // Compare if the distribution date matches the selected date
+        return distributionDate.getTime() === selectedDate.getTime();
+      });
+    }
+    
+    setFilteredDistributions(results);
+  };
+
+  const handleDateFilterChange = (e) => {
+    setDateFilter(e.target.value);
+  };
+
+  const resetFilters = () => {
+    setDateFilter('');
+    setFilteredDistributions(distributions);
+  };
+
+  const toggleFilter = () => {
+    setIsFilterVisible(!isFilterVisible);
+  };
 
   const getStatusClass = (status) => {
     switch(status) {
@@ -177,14 +229,25 @@ const DistributionList = () => {
               <h1>Daftar Distribusi <span className="gradient-text">Kopi</span></h1>
               <p>Lihat dan lacak semua distribusi kopi yang tercatat pada blockchain</p>
             </div>
-            {isConnected && (
+            <div className="header-actions">
               <button 
-                className="btn-primary add-button"
-                onClick={() => router.push('/distribusi/new')}
+                className="btn-filter"
+                onClick={toggleFilter}
               >
-                + Tambah Distribusi Baru
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M22 3H2L10 12.46V19L14 21V12.46L22 3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Filter
               </button>
-            )}
+              {isConnected && userRole !== 4 && (
+                <button 
+                  className="btn-primary add-button"
+                  onClick={() => router.push('/distribusi/new')}
+                >
+                  + Tambah Distribusi Baru
+                </button>
+              )}
+            </div>
           </div>
 
           {isConnected && (
@@ -196,12 +259,38 @@ const DistributionList = () => {
             </div>
           )}
 
+          {/* Date filter panel */}
+          <div className={`filter-panel ${isFilterVisible ? 'visible' : ''}`}>
+            <div className="filter-header">
+              <h3>Filter Distribusi</h3>
+              <button className="btn-reset" onClick={resetFilters}>Reset</button>
+            </div>
+            <div className="filter-content">
+              <div className="filter-group">
+                <h4>Filter Berdasarkan Waktu Distribusi</h4>
+                <div className="date-input">
+                  <label htmlFor="dateFilter">Pilih Tanggal</label>
+                  <input 
+                    type="date" 
+                    id="dateFilter" 
+                    name="dateFilter"
+                    value={dateFilter}
+                    onChange={handleDateFilterChange}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="filter-footer">
+              <span className="results-count">{filteredDistributions.length} distribusi ditemukan</span>
+            </div>
+          </div>
+
           {loading ? (
             <div className="loading-container">
               <div className="loader-large"></div>
               <p>Memuat data distribusi...</p>
             </div>
-          ) : distributions.length === 0 ? (
+          ) : filteredDistributions.length === 0 ? (
             <div className="empty-state">
               <div className="empty-icon">
                 <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -211,20 +300,18 @@ const DistributionList = () => {
                   <path d="M9.5 15C10.1667 16.1667 11.3 17 12 17C12.7 17 13.8333 16.1667 14.5 15" stroke="#C8A27A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
-              <h2>Belum Ada Distribusi</h2>
-              <p>Belum ada distribusi kopi yang tercatat pada blockchain</p>
-              {isConnected && (
-                <button 
-                  className="btn-primary"
-                  onClick={() => router.push('/distribusi/new')}
-                >
-                  Tambah Distribusi Baru
-                </button>
-              )}
+              <h2>Tidak Ada Distribusi Ditemukan</h2>
+              <p>Tidak ada distribusi kopi yang sesuai dengan filter yang dipilih</p>
+              <button 
+                className="btn-primary"
+                onClick={resetFilters}
+              >
+                Reset Filter
+              </button>
             </div>
           ) : (
             <div className="distributions-grid">
-              {distributions.map((item) => (
+              {filteredDistributions.map((item) => (
                 <div className="distribution-card" key={item.id}
                      onClick={() => router.push(`/distribusi/${item.id}`)}>
                   <div className="card-header">
@@ -244,26 +331,28 @@ const DistributionList = () => {
                     </div>
                     <div className="detail-row">
                       <div className="detail-label">Jenis Kopi:</div>
-                      <div className="detail-value">{item.coffeeType === 'N/A' ? <span className="not-set">Belum Ditentukan</span> : item.coffeeType}</div>
+                      <div className="detail-value">{item.coffeeType}</div>
                     </div>
                     <div className="detail-row">
                       <div className="detail-label">Metode Pengolahan:</div>
-                      <div className="detail-value">{item.processingMethod === 'N/A' ? <span className="not-set">Belum Ditentukan</span> : item.processingMethod}</div>
+                      <div className="detail-value">{item.processingMethod}</div>
                     </div>
                     <div className="detail-row">
                       <div className="detail-label">Tanggal Panen:</div>
                       <div className="detail-value">{formatDate(item.harvestDate)}</div>
                     </div>
-                    <div className="details-group">
-                      <div className="detail-row">
-                        <div className="detail-label">Berat:</div>
-                        <div className="detail-value">{item.batchWeight} kg</div>
+                    
+                    <div className="detail-row weight-price-row">
+                      <div className="detail-cell">
+                        <span>Berat</span>
+                        <div className="value-display">{item.batchWeight} kg</div>
                       </div>
-                      <div className="detail-row">
-                        <div className="detail-label">Harga/kg:</div>
-                        <div className="detail-value">Rp {parseInt(item.price).toLocaleString('id-ID')}</div>
+                      <div className="detail-cell">
+                        <span>Harga</span>
+                        <div className="value-display">Rp {parseInt(item.price).toLocaleString('id-ID')}</div>
                       </div>
                     </div>
+                    
                     <div className="detail-row timestamp">
                       <div className="detail-label">Waktu Distribusi:</div>
                       <div className="detail-value">{formatTimestamp(item.timestamp)}</div>
@@ -272,7 +361,10 @@ const DistributionList = () => {
                   <div className="card-footer">
                     <button 
                       className="btn-secondary view-button"
-                      onClick={() => router.push(`/distribusi/${item.id}`)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/distribusi/${item.id}`);
+                      }}
                     >
                       Lihat Detail
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -328,6 +420,131 @@ const DistributionList = () => {
           margin: 0;
         }
 
+        .header-actions {
+          display: flex;
+          gap: 12px;
+          align-items: center;
+        }
+
+        .btn-filter {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: rgba(224, 187, 145, 0.1);
+          color: white;
+          border: 1px solid rgba(224, 187, 145, 0.3);
+          padding: 10px 16px;
+          border-radius: 4px;
+          font-family: 'Poppins', sans-serif;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .btn-filter:hover {
+          background: rgba(224, 187, 145, 0.2);
+        }
+
+        .filter-panel {
+          background: rgba(26, 18, 11, 0.95);
+          border-radius: 8px;
+          border: 1px solid rgba(224, 187, 145, 0.2);
+          margin-bottom: 24px;
+          overflow: hidden;
+          max-height: 0;
+          opacity: 0;
+          transition: all 0.3s ease-in-out;
+        }
+
+        .filter-panel.visible {
+          max-height: 500px;
+          opacity: 1;
+        }
+
+        .filter-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 15px 20px;
+          border-bottom: 1px solid rgba(224, 187, 145, 0.1);
+        }
+
+        .filter-header h3 {
+          margin: 0;
+          font-size: 18px;
+          color: #E5B168;
+        }
+
+        .btn-reset {
+          background: transparent;
+          color: rgba(255, 255, 255, 0.7);
+          border: none;
+          cursor: pointer;
+          font-size: 14px;
+          font-family: 'Poppins', sans-serif;
+          transition: color 0.2s;
+        }
+
+        .btn-reset:hover {
+          color: white;
+          text-decoration: underline;
+        }
+
+        .filter-content {
+          padding: 20px;
+        }
+
+        .filter-group {
+          margin-bottom: 20px;
+        }
+
+        .filter-group h4 {
+          margin: 0 0 12px;
+          font-size: 16px;
+          font-weight: 500;
+          color: rgba(255, 255, 255, 0.9);
+        }
+
+        .date-range-inputs {
+          display: flex;
+          gap: 20px;
+        }
+
+        .date-input {
+          flex: 1;
+          max-width: 250px;
+        }
+
+        .date-input label {
+          display: block;
+          margin-bottom: 8px;
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.7);
+        }
+
+        .date-input input {
+          width: 100%;
+          background: rgba(0, 0, 0, 0.4);
+          border: 1px solid rgba(224, 187, 145, 0.3);
+          border-radius: 4px;
+          padding: 10px;
+          color: white;
+          font-family: 'Poppins', sans-serif;
+        }
+
+        .date-input input:focus {
+          outline: none;
+          border-color: rgba(224, 187, 145, 0.6);
+        }
+
+        .filter-footer {
+          padding: 12px 20px;
+          background: rgba(0, 0, 0, 0.2);
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.7);
+        }
+
         .btn-primary {
           background: linear-gradient(90deg, #8B4513 0%, #C8A27A 100%);
           color: white;
@@ -381,7 +598,7 @@ const DistributionList = () => {
         }
 
         .distribution-card {
-          background: rgba(0, 0, 0, 0.2);
+          background: rgba(26, 18, 11, 0.95);
           border-radius: 12px;
           border: 1px solid rgba(224, 187, 145, 0.2);
           overflow: hidden;
@@ -436,7 +653,7 @@ const DistributionList = () => {
 
         .detail-row {
           display: flex;
-          margin-bottom: 10px;
+          margin-bottom: 12px;
         }
 
         .detail-label {
@@ -455,24 +672,38 @@ const DistributionList = () => {
           padding: 2px 6px;
           border-radius: 4px;
         }
-
-        .details-group {
+        
+        .weight-price-row {
           display: flex;
+          justify-content: space-between;
           gap: 20px;
-          margin: 12px 0;
-          padding: 12px 0;
+          margin: 15px 0;
+          padding: 15px 0;
           border-top: 1px dashed rgba(224, 187, 145, 0.2);
           border-bottom: 1px dashed rgba(224, 187, 145, 0.2);
         }
-
-        .details-group .detail-row {
-          margin-bottom: 0;
+        
+        .detail-cell {
+          text-align: center;
+          flex: 1;
+        }
+        
+        .detail-cell span {
+          display: block;
+          color: #C8A27A;
+          font-size: 14px;
+          font-weight: 500;
+          margin-bottom: 5px;
+        }
+        
+        .value-display {
+          font-size: 18px;
+          font-weight: 600;
         }
 
         .timestamp {
-          margin-top: 10px;
+          margin-top: 5px;
           font-size: 14px;
-          opacity: 0.7;
         }
 
         .card-footer {
@@ -568,6 +799,12 @@ const DistributionList = () => {
             gap: 16px;
           }
 
+          .header-actions {
+            width: 100%;
+            flex-direction: column;
+          }
+
+          .btn-filter,
           .add-button {
             width: 100%;
             justify-content: center;
@@ -580,12 +817,10 @@ const DistributionList = () => {
           h1 {
             font-size: 26px;
           }
-        }
-
-        .not-set {
-          color: rgba(229, 177, 104, 0.6);
-          font-style: italic;
-          font-size: 0.9em;
+          
+          .date-input {
+            max-width: 100%;
+          }
         }
       `}</style>
     </div>

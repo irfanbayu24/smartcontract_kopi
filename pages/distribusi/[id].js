@@ -507,40 +507,100 @@ const DistributionDetail = () => {
                         </div>
                       </div>
                       
-                      <div className="participants-section">
-                        <h3>Partisipan</h3>
-                        <div className="participant-row">
-                          <div className="participant-label">Petani:</div>
-                          <div className="participant-value">{formatAddress(distribution.petani)}</div>
-                        </div>
-                        
-                        <div className="participant-row">
-                          <div className="participant-label">Pengepul:</div>
-                          <div className="participant-value">
-                            {distribution.pengepul === '0x0000000000000000000000000000000000000000' 
-                              ? <span className="not-set">Belum ditentukan</span> 
-                              : formatAddress(distribution.pengepul)}
-                          </div>
-                        </div>
-                        
-                        <div className="participant-row">
-                          <div className="participant-label">Pengirim:</div>
-                          <div className="participant-value">
-                            {distribution.pengirim === '0x0000000000000000000000000000000000000000' 
-                              ? <span className="not-set">Belum ditentukan</span> 
-                              : formatAddress(distribution.pengirim)}
-                          </div>
-                        </div>
-                        
-                        <div className="participant-row">
-                          <div className="participant-label">Penerima:</div>
-                          <div className="participant-value">
-                            {distribution.penerima === '0x0000000000000000000000000000000000000000' 
-                              ? <span className="not-set">Belum ditentukan</span> 
-                              : formatAddress(distribution.penerima)}
+                      <div className="detail-section timeline-section">
+                        <h3>Status Distribusi</h3>
+                        <div className="shipping-status-container">
+                          <div className="shipping-status">
+                            <div className="status-item">
+                              <div className={`status-circle ${parseInt(distribution.status) >= 1 ? 'active' : ''}`}>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M5 12L10 17L20 7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                              </div>
+                              <div className={`status-line ${parseInt(distribution.status) >= 2 ? 'active' : ''}`}></div>
+                              <div className="status-text">
+                                <div className="status-title">Order Received</div>
+                              </div>
+                            </div>
+
+                            <div className="status-item">
+                              <div className={`status-circle ${parseInt(distribution.status) >= 2 ? 'active' : ''}`}>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M12 6V12L16 14" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                  <circle cx="12" cy="12" r="8" stroke="white" strokeWidth="2"/>
+                                </svg>
+                              </div>
+                              <div className={`status-line ${parseInt(distribution.status) >= 4 ? 'active' : ''}`}></div>
+                              <div className="status-text">
+                                <div className="status-title">Processing</div>
+                              </div>
+                            </div>
+
+                            <div className="status-item">
+                              <div className={`status-circle ${parseInt(distribution.status) >= 4 ? 'active' : ''}`}>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <rect x="3" y="6" width="18" height="12" rx="2" stroke="white" strokeWidth="2"/>
+                                  <path d="M3 10H21" stroke="white" strokeWidth="2"/>
+                                  <path d="M7 14H13" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                                </svg>
+                              </div>
+                              <div className={`status-line ${parseInt(distribution.status) >= 6 ? 'active' : ''}`}></div>
+                              <div className="status-text">
+                                <div className="status-title">Shipped</div>
+                              </div>
+                            </div>
+
+                            <div className="status-item">
+                              <div className={`status-circle ${parseInt(distribution.status) >= 6 ? 'active' : ''}`}>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z" stroke="white" strokeWidth="2"/>
+                                  <path d="M12 22C12 22 20 16 20 10C20 5.58172 16.4183 2 12 2C7.58172 2 4 5.58172 4 10C4 16 12 22 12 22Z" stroke="white" strokeWidth="2"/>
+                                </svg>
+                              </div>
+                              <div className="status-text">
+                                <div className="status-title">Delivered</div>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="detail-section partisipan-section">
+                  <h3>Partisipan</h3>
+                  <div className="partisipan-content">
+                    <div className="partisipan-item">
+                      <span className="partisipan-label">Petani:</span>
+                      <span className="partisipan-value">{formatAddress(distribution.petani)}</span>
+                    </div>
+                    
+                    <div className="partisipan-item">
+                      <span className="partisipan-label">Pengepul:</span>
+                      <span className="partisipan-value">
+                        {distribution.pengepul === '0x0000000000000000000000000000000000000000' 
+                          ? <span className="belum-ditentukan">Belum ditentukan</span> 
+                          : formatAddress(distribution.pengepul)}
+                      </span>
+                    </div>
+                    
+                    <div className="partisipan-item">
+                      <span className="partisipan-label">Pengirim:</span>
+                      <span className="partisipan-value">
+                        {distribution.pengirim === '0x0000000000000000000000000000000000000000' 
+                          ? <span className="belum-ditentukan">Belum ditentukan</span> 
+                          : formatAddress(distribution.pengirim)}
+                      </span>
+                    </div>
+                    
+                    <div className="partisipan-item">
+                      <span className="partisipan-label">Penerima:</span>
+                      <span className="partisipan-value">
+                        {distribution.penerima === '0x0000000000000000000000000000000000000000' 
+                          ? <span className="belum-ditentukan">Belum ditentukan</span> 
+                          : formatAddress(distribution.penerima)}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -675,6 +735,154 @@ const DistributionDetail = () => {
             margin: 20px auto;
           }
           
+          .timeline-section {
+            margin-top: 30px;
+            margin-bottom: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+          }
+          
+          .timeline-section h3 {
+            color: #E5B168;
+            margin-bottom: 20px;
+            font-size: 18px;
+          }
+          
+          .shipping-status-container {
+            max-width: 700px;
+            margin: 30px auto 15px;
+            padding: 0 5px;
+          }
+          
+          .shipping-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            position: relative;
+          }
+          
+          .status-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            flex: 1;
+            padding: 0 10px;
+          }
+          
+          .status-circle {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background-color: #444444;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+            border: 2px solid #444444;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+          }
+          
+          .status-circle.active {
+            background-color: #2196F3;
+            border-color: #2196F3;
+            box-shadow: 0 0 10px rgba(33, 150, 243, 0.4);
+          }
+          
+          .status-circle:first-child.active {
+            background-color: #4CAF50;
+            border-color: #4CAF50;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.4);
+          }
+          
+          .status-line {
+            position: absolute;
+            height: 2px;
+            background-color: #444444;
+            top: 23px;
+            width: 100%;
+            left: 50%;
+            z-index: 1;
+            transition: background-color 0.3s ease;
+          }
+          
+          .status-line.active {
+            background-color: #2196F3;
+          }
+          
+          .status-item:first-child .status-line {
+            left: 50%;
+            width: 50%;
+          }
+          
+          .status-item:last-child .status-line {
+            display: none;
+          }
+          
+          .status-text {
+            text-align: center;
+            margin-top: 10px;
+          }
+          
+          .status-title {
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            text-transform: uppercase;
+            color: #E5B168;
+          }
+          
+          .status-date {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 3px;
+          }
+          
+          .status-circle svg {
+            width: 24px;
+            height: 24px;
+          }
+          
+          .status-circle span {
+            font-size: 13px;
+            font-weight: 600;
+            color: white;
+          }
+          
+          .partisipan-section {
+            margin-bottom: 30px;
+          }
+          
+          .partisipan-content {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+          }
+          
+          .partisipan-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+          }
+          
+          .partisipan-label {
+            color: #C8A27A;
+            font-size: 14px;
+          }
+          
+          .partisipan-value {
+            font-weight: 500;
+          }
+          
+          .belum-ditentukan {
+            color: rgba(229, 177, 104, 0.6);
+            font-style: italic;
+          }
+          
           .card-header {
             display: flex;
             justify-content: space-between;
@@ -763,34 +971,96 @@ const DistributionDetail = () => {
             transform: translateY(-2px);
           }
           
-          .participants-section {
-            margin-top: 24px;
-            padding-top: 24px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+          .detail-section {
+            background: rgba(26, 18, 11, 0.95);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            margin-bottom: 25px;
+            border: 1px solid rgba(224, 187, 145, 0.1);
           }
           
-          .participants-section h3 {
+          .detail-section h3 {
             color: #E5B168;
-            margin: 0 0 16px 0;
+            margin-top: 0;
+            margin-bottom: 20px;
             font-size: 18px;
+            font-weight: 600;
           }
           
-          .participant-row {
+          .timeline-section {
+            margin-top: 30px;
+            margin-bottom: 30px;
+            border-top: none;
+          }
+          
+          .timeline {
             display: flex;
-            margin-bottom: 12px;
+            flex-direction: column;
+            gap: 15px;
           }
           
-          .participant-label {
-            width: 100px;
-            color: rgba(255, 255, 255, 0.6);
+          .timeline-item {
+            display: flex;
+            gap: 15px;
+            opacity: 0.5;
+            align-items: center;
           }
           
-          .participant-value {
+          .timeline-item.active {
+            opacity: 1;
+          }
+          
+          .timeline-point {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            flex-shrink: 0;
+          }
+          
+          .timeline-point.active {
+            background: #E5B168;
+            box-shadow: 0 0 0 3px rgba(229, 177, 104, 0.2);
+          }
+          
+          .timeline-content {
             flex: 1;
-            font-family: monospace;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 2px 6px;
-            border-radius: 4px;
+          }
+          
+          .timeline-title {
+            font-weight: 500;
+            color: #fff;
+          }
+          
+          .partisipan-section {
+            margin-bottom: 30px;
+          }
+          
+          .partisipan-content {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+          }
+          
+          .partisipan-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+          }
+          
+          .partisipan-label {
+            color: #C8A27A;
+            font-size: 14px;
+          }
+          
+          .partisipan-value {
+            font-weight: 500;
+          }
+          
+          .belum-ditentukan {
+            color: rgba(229, 177, 104, 0.6);
+            font-style: italic;
           }
           
           @media (max-width: 768px) {
@@ -805,6 +1075,166 @@ const DistributionDetail = () => {
             .card-header {
               flex-direction: column;
               align-items: flex-start;
+            }
+            
+            .timeline-point {
+              transform: translateY(-20px);
+            }
+            
+            .point-dot {
+              width: 12px;
+              height: 12px;
+              margin-bottom: 8px;
+            }
+            
+            .point-label {
+              font-size: 10px;
+              max-width: 60px;
+              transform: rotate(-30deg);
+              margin-top: 10px;
+            }
+            
+            .timeline-line, .timeline-points {
+              margin: 0 10px;
+            }
+            
+            .visual-timeline {
+              margin: 30px 0 50px;
+            }
+          }
+          
+          @media (max-width: 480px) {
+            .point-label {
+              font-size: 10px;
+              max-width: 40px;
+              transform: rotate(-45deg);
+            }
+            
+            .point-dot {
+              width: 10px;
+              height: 10px;
+            }
+            
+            .timeline-point {
+              transform: translateY(-16px);
+            }
+          }
+          
+          .shipping-status-container {
+            max-width: 700px;
+            margin: 30px auto;
+            padding: 0 15px;
+          }
+          
+          .shipping-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            position: relative;
+          }
+          
+          .status-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            flex: 1;
+          }
+          
+          .status-circle {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background-color: #444444;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+            border: 2px solid #444444;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+          }
+          
+          .status-circle.active {
+            background-color: #2196F3;
+            border-color: #2196F3;
+            box-shadow: 0 0 10px rgba(33, 150, 243, 0.4);
+          }
+          
+          .status-circle:first-child.active {
+            background-color: #4CAF50;
+            border-color: #4CAF50;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.4);
+          }
+          
+          .status-line {
+            position: absolute;
+            height: 2px;
+            background-color: #444444;
+            top: 23px;
+            width: 100%;
+            left: 50%;
+            z-index: 1;
+          }
+          
+          .status-line.active {
+            background-color: #2196F3;
+          }
+          
+          .status-item:first-child .status-line {
+            left: 50%;
+            width: 50%;
+          }
+          
+          .status-item:last-child .status-line {
+            display: none;
+          }
+          
+          .status-text {
+            text-align: center;
+            margin-top: 10px;
+          }
+          
+          .status-title {
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            text-transform: uppercase;
+          }
+          
+          .status-date {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 3px;
+          }
+          
+          .status-circle svg {
+            width: 24px;
+            height: 24px;
+          }
+          
+          .status-circle span {
+            font-size: 13px;
+            font-weight: 600;
+            color: white;
+          }
+          
+          @media (max-width: 600px) {
+            .shipping-status {
+              flex-wrap: wrap;
+            }
+            
+            .status-item {
+              width: 50%;
+              margin-bottom: 20px;
+            }
+            
+            .status-line {
+              display: none;
+            }
+          }
         `}</style>
       </div>
     );
@@ -873,37 +1303,60 @@ const DistributionDetail = () => {
                     </div>
                   </div>
                   
-                  <div className="participants-section">
-                    <h3>Partisipan</h3>
-                    <div className="participant-row">
-                      <div className="participant-label">Petani:</div>
-                      <div className="participant-value">{formatAddress(distribution.petani)}</div>
-                    </div>
-                    
-                    <div className="participant-row">
-                      <div className="participant-label">Pengepul:</div>
-                      <div className="participant-value">
-                        {distribution.pengepul === '0x0000000000000000000000000000000000000000' 
-                          ? <span className="not-set">Belum ditentukan</span> 
-                          : formatAddress(distribution.pengepul)}
-                      </div>
-                    </div>
-                    
-                    <div className="participant-row">
-                      <div className="participant-label">Pengirim:</div>
-                      <div className="participant-value">
-                        {distribution.pengirim === '0x0000000000000000000000000000000000000000' 
-                          ? <span className="not-set">Belum ditentukan</span> 
-                          : formatAddress(distribution.pengirim)}
-                      </div>
-                    </div>
-                    
-                    <div className="participant-row">
-                      <div className="participant-label">Penerima:</div>
-                      <div className="participant-value">
-                        {distribution.penerima === '0x0000000000000000000000000000000000000000' 
-                          ? <span className="not-set">Belum ditentukan</span> 
-                          : formatAddress(distribution.penerima)}
+                  <div className="detail-section timeline-section">
+                    <h3>Status Distribusi</h3>
+                    <div className="shipping-status-container">
+                      <div className="shipping-status">
+                        <div className="status-item">
+                          <div className={`status-circle ${parseInt(distribution.status) >= 1 ? 'active' : ''}`}>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M5 12L10 17L20 7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </div>
+                          <div className={`status-line ${parseInt(distribution.status) >= 2 ? 'active' : ''}`}></div>
+                          <div className="status-text">
+                            <div className="status-title">Order Received</div>
+                          </div>
+                        </div>
+
+                        <div className="status-item">
+                          <div className={`status-circle ${parseInt(distribution.status) >= 2 ? 'active' : ''}`}>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M12 6V12L16 14" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              <circle cx="12" cy="12" r="8" stroke="white" strokeWidth="2"/>
+                            </svg>
+                          </div>
+                          <div className={`status-line ${parseInt(distribution.status) >= 4 ? 'active' : ''}`}></div>
+                          <div className="status-text">
+                            <div className="status-title">Processing</div>
+                          </div>
+                        </div>
+
+                        <div className="status-item">
+                          <div className={`status-circle ${parseInt(distribution.status) >= 4 ? 'active' : ''}`}>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <rect x="3" y="6" width="18" height="12" rx="2" stroke="white" strokeWidth="2"/>
+                              <path d="M3 10H21" stroke="white" strokeWidth="2"/>
+                              <path d="M7 14H13" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                            </svg>
+                          </div>
+                          <div className={`status-line ${parseInt(distribution.status) >= 6 ? 'active' : ''}`}></div>
+                          <div className="status-text">
+                            <div className="status-title">Shipped</div>
+                          </div>
+                        </div>
+
+                        <div className="status-item">
+                          <div className={`status-circle ${parseInt(distribution.status) >= 6 ? 'active' : ''}`}>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z" stroke="white" strokeWidth="2"/>
+                              <path d="M12 22C12 22 20 16 20 10C20 5.58172 16.4183 2 12 2C7.58172 2 4 5.58172 4 10C4 16 12 22 12 22Z" stroke="white" strokeWidth="2"/>
+                            </svg>
+                          </div>
+                          <div className="status-text">
+                            <div className="status-title">Delivered</div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1256,6 +1709,122 @@ const DistributionDetail = () => {
           margin: 0;
           font-size: 14px;
           color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .shipping-status-container {
+          max-width: 700px;
+          margin: 30px auto;
+          padding: 0 15px;
+        }
+        
+        .shipping-status {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          position: relative;
+        }
+        
+        .status-item {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          position: relative;
+          flex: 1;
+        }
+        
+        .status-circle {
+          width: 46px;
+          height: 46px;
+          border-radius: 50%;
+          background-color: #444444;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          margin-bottom: 10px;
+          border: 2px solid #444444;
+          position: relative;
+          z-index: 2;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+        
+        .status-circle.active {
+          background-color: #2196F3;
+          border-color: #2196F3;
+          box-shadow: 0 0 10px rgba(33, 150, 243, 0.4);
+        }
+        
+        .status-circle:first-child.active {
+          background-color: #4CAF50;
+          border-color: #4CAF50;
+          box-shadow: 0 0 10px rgba(76, 175, 80, 0.4);
+        }
+        
+        .status-line {
+          position: absolute;
+          height: 2px;
+          background-color: #444444;
+          top: 23px;
+          width: 100%;
+          left: 50%;
+          z-index: 1;
+        }
+        
+        .status-line.active {
+          background-color: #2196F3;
+        }
+        
+        .status-item:first-child .status-line {
+          left: 50%;
+          width: 50%;
+        }
+        
+        .status-item:last-child .status-line {
+          display: none;
+        }
+        
+        .status-text {
+          text-align: center;
+          margin-top: 10px;
+        }
+        
+        .status-title {
+          font-weight: 600;
+          font-size: 14px;
+          letter-spacing: 0.5px;
+          white-space: nowrap;
+          text-transform: uppercase;
+        }
+        
+        .status-date {
+          font-size: 13px;
+          color: rgba(255, 255, 255, 0.6);
+          margin-top: 3px;
+        }
+        
+        .status-circle svg {
+          width: 24px;
+          height: 24px;
+        }
+        
+        .status-circle span {
+          font-size: 13px;
+          font-weight: 600;
+          color: white;
+        }
+        
+        @media (max-width: 600px) {
+          .shipping-status {
+            flex-wrap: wrap;
+          }
+          
+          .status-item {
+            width: 50%;
+            margin-bottom: 20px;
+          }
+          
+          .status-line {
+            display: none;
+          }
         }
       `}</style>
     </div>

@@ -187,9 +187,11 @@ const Header = () => {
             </div>
           )}
           
-          <Link href="/distribusi/new">
-            <button className="btn-primary">Distribusi Baru</button>
-          </Link>
+          {(!isConnected || (userRole !== 4)) && (
+            <Link href="/distribusi/new">
+              <button className="btn-primary">Distribusi Baru</button>
+            </Link>
+          )}
 
           <button className="mobile-menu-toggle" onClick={toggleMobileMenu}>
             <div className={`menu-icon ${isMobileMenuOpen ? 'active' : ''}`}>

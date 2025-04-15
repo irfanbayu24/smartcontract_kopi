@@ -10,11 +10,5 @@
     "files": [
       "static/chunks/_pages-dir-browser_node_modules_next_dist_pages__error_js.js"
     ]
-  },
-  "pages\\index.js -> ../components/WalletConnection": {
-    "id": "pages\\index.js -> ../components/WalletConnection",
-    "files": [
-      "static/chunks/_pages-dir-browser_components_WalletConnection_js.js"
-    ]
   }
 }

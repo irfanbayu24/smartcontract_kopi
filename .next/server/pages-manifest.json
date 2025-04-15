@@ -2,8 +2,7 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/pengepul/dashboard": "pages/pengepul/dashboard.js",
-  "/pengepul/proses/[id]": "pages/pengepul/proses/[id].js",
+  "/distribusi": "pages/distribusi.js",
   "/": "pages/index.js",
-  "/distribusi": "pages/distribusi.js"
+  "/distribusi/[id]": "pages/distribusi/[id].js"
 }
